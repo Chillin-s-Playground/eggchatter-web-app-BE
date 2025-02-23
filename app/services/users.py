@@ -1,7 +1,7 @@
 from beanie import PydanticObjectId
 from beanie.odm.operators.update.general import Set
-from fastapi import HTTPException
 
+from app.core.exceptions import NotFoundError
 from app.models.users import Users
 from app.schemas.users import Profile
 
@@ -10,21 +10,13 @@ class UserService:
     def __init__(self, db=None):
         self.db = db
 
-    async def create_user_info(self, id=PydanticObjectId, profile=Profile):
-
-        user = await Users.get(id)
-
-        print("user", user)
-
+    async def update_user_profile(self, user_id: PydanticObjectId, req: Profile):
+        """유저의 프로필 정보 업데이트"""
+        user = await Users.get(user_id)
         if user is None:
-            raise HTTPException(status_code=404, detail="User not found.")
-
-        try:
-            await user.update(
-                Set({Users.name: profile.name, Users.profile: profile.profile})
+            raise NotFoundError(
+                detail=f"{user_id}에 해당하는 유저는 존재하지 않습니다."
             )
-            print("업데이트 잘됐어.")
-            print("profile.name", profile.name)
-            print("profile.name", profile.name)
-        except Exception as e:
-            print(str(e))
+        await user.update(
+            Set({Users.nickname: req.nickname, Users.profile: req.profile})
+        )
