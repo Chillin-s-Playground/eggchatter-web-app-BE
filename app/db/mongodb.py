@@ -7,7 +7,9 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.database import Database as MongoDatabase
 
 from app.config import MONGO_NAME, MONGO_PASSWORD, MONGO_URI, MONGO_USER
-from app.models.models import Chats, EasterEggs, Users
+from app.models.chats import Chats
+from app.models.easter_egg import EasterEggs
+from app.models.users import Users
 
 
 async def _check_connection():
@@ -37,10 +39,8 @@ class MongoDB:
         session = None
         try:
             session = await self._client.start_session()
-            await init_beanie(
-                self._db, document_models=[Users, EasterEggs, Chats]
-            )  # session 없이 DB만 초기화
-            yield session  # 세션을 반환
+            await init_beanie(self._db, document_models=[Users, EasterEggs, Chats])
+            yield session
         except Exception as e:
             print(f"Error: {str(e)}")
             raise e
