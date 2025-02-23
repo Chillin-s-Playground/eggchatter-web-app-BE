@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.database import Database as MongoDatabase
 
-from app.config import MONGO_NAME, MONGO_PASSWORD, MONGO_URI, MONGO_USER
+from app.core.config import MONGO_NAME, MONGO_PASSWORD, MONGO_URI, MONGO_USER
 from app.models.chats import Chats
 from app.models.easter_egg import EasterEggs
 from app.models.users import Users
