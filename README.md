@@ -1,1 +1,0 @@
-[EggChatter 문서 🥚](https://www.notion.so/EggChatter-1937c0ec237080e7b9c4fc8a192cebfc)
