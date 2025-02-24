@@ -14,6 +14,12 @@
   }
 } */
 
+.dot-patter {
+  background-color: #f8f4da; 
+  background-image: radial-gradient(circle, #ffffff 48px, transparent 1px);
+  background-size: 160px 160px; 
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
