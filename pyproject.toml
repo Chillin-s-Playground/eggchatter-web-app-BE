@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "eggchatters"
+version = "0.1.0"
+description = ""
+authors = ["chilln <kimjihan77@naver.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.8"
+uvicorn = "^0.34.0"
+black = "^25.1.0"
+pydantic = "^2.10.6"
+beanie = "^1.29.0"
+motor = "^3.7.0"
+flake8 = "^7.1.2"
+isort = "^6.0.0"
+python-dotenv = "^1.0.1"
+ruff = "^0.9.6"
+pymongo = "^4.11.1"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.9.6"
+
+[tool.black]
+line-length = 88
+include = '\.pyi?$'
+
+
+[tool.isort]
+profile = "black"
+line_length = 88
+known_third_party = ["fastapi", "pydantic"]
+known_first_party = ["app"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
