@@ -17,10 +17,6 @@ class ChatRooms(CommonFields):
         comment="I : 초대는 했는데, 초대수락 안됨, O : 대화중, L: 대화 후 상대방이 나감.",
     )
 
-    users = relationship(
-        "Users", secondary="chat_rooms_users", back_populates="chatrooms"
-    )
-
 
 class ChatRoomsUsers(CommonFields):
     """채팅방-유저 관계 테이블"""
@@ -29,9 +25,6 @@ class ChatRoomsUsers(CommonFields):
 
     user_id = Column(BigInteger, ForeignKey("users.id"), primary_key=True)
     chatroom_id = Column(BigInteger, ForeignKey("chat_rooms.id"), primary_key=True)
-
-    user = relationship("Users", back_populates="chatrooms")
-    chatroom = relationship("ChatRooms", back_populates="users")
 
 
 class Messages(CommonFields):
