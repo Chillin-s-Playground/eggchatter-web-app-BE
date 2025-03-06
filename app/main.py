@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers.http import auth, easter_egg, users
-from app.routers.ws import chat
+from app.routers import auth, easter_egg, users
 
 app = FastAPI()
 

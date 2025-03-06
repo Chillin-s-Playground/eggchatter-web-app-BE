@@ -1,22 +1,30 @@
-from beanie import PydanticObjectId
-from beanie.odm.operators.update.general import Set
+from sqlalchemy import update
+from sqlalchemy.exc import DataError, SQLAlchemyError
 
-from app.core.exceptions import NotFoundError
+from app.core.exceptions import SQLDataErrorException
 from app.models.users import Users
-from app.schemas.users import Profile
+from app.schemas.users import CreateProfileDTO
 
 
 class UserService:
     def __init__(self, db=None):
         self.db = db
 
-    async def update_user_profile(self, user_id: PydanticObjectId, req: Profile):
-        """유저의 프로필 정보 업데이트"""
-        user = await Users.get(user_id)
-        if user is None:
-            raise NotFoundError(
-                detail=f"{user_id}에 해당하는 유저는 존재하지 않습니다."
+    def create_profile(self, profile: CreateProfileDTO):
+        """프로필 생성
+
+        Args:
+            profile (CreateProfileDTO): 닉네임과 유저의 프로필 이미지
+        """
+        try:
+            stmt = (
+                update(Users)
+                .where(Users.id == profile.user_id)
+                .values(nickname=profile.nickname, profile_image=profile.profile_image)
             )
-        await user.update(
-            Set({Users.nickname: req.nickname, Users.profile: req.profile})
-        )
+            self.db.execute(stmt)
+        except DataError as e:
+            raise SQLDataErrorException(detail=f"입력하신 정보가 너무 깁니다.")
+        except SQLAlchemyError as e:
+            raise SQLAlchemyError(f"{str(e)}")
+        return dict(nickname=profile.nickname, profile_image=profile.profile_image)
