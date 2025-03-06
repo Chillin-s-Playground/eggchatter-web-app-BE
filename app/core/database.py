@@ -18,6 +18,7 @@ def start_session():
     try:
         session = SessionLocal()
         yield session
+        session.commit()
     except Exception as e:
         print(f"에러 : {str(e)}")
         raise e
