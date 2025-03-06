@@ -1,22 +1,22 @@
-from typing import Optional
+from sqlalchemy import BigInteger, Column, Integer, String
+from sqlalchemy.orm import relationship
 
-from beanie import Document
-from pydantic import Field
-
-from app.models.basemodel import BaseModel
+from app.models.base import CommonFields
 
 
-class Users(BaseModel, Document):
-    """유저 Collection"""
+class Users(CommonFields):
+    """유저 테이블"""
 
-    social_id: str = Field(..., description="소셜 id")
-    social_type: str = Field(..., description="소셜로그인 타입")
-    nickname: Optional[str] = Field(None, description="닉네임")
-    profile: Optional[str] = Field(None, description="프로필 이미지")
-    email: str = Field(..., description="이메일 주소")
-    is_deleted: int = Field(..., description="활성화 여부 - 0:비활성, 1:활성")
-    is_admin: int = Field(..., description="관리자 여부 - 0:일반유저, 1:관리자")
-    is_invited: int = Field(..., description="초대 여부 - 0:일반가입, 1:초대가입")
+    __tablename__ = "users"
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    email = Column(String(128), unique=True, nullable=False, comment="회원 이메일")
+    social_id = Column(String(64), nullable=True, comment="소셜로그인 key")
+    login_type = Column(
+        String(40), nullable=False, comment="로그인 타입 (KAKAO, EMAIL, ...)"
+    )
+    password = Column(String(64), nullable=True, comment="비밀번호")
+    profile = Column(String(64), nullable=True, comment="프로필 이미지")
+    nickname = Column(String(40), nullable=False, comment="닉네임")
+    is_admin = Column(Integer, default=0, nullable=False, comment="어드민 여부")
 
-    class Settings:
-        collection = "users"
+    chatrooms = relationship("ChatRooms", secondary="chat_rooms_users")

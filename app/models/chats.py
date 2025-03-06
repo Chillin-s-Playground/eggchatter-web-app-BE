@@ -1,32 +1,55 @@
-from datetime import datetime
-from typing import List
+from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, String, Text, func
+from sqlalchemy.orm import relationship
 
-from beanie import Document
-from pydantic import Field
-
-from app.models.basemodel import BaseModel
+from app.models.base import CommonFields
 
 
-class ReadBy(BaseModel):
-    reader_id: str = Field(..., description="읽은 유저 id")
-    read_at: datetime = Field(..., description="읽은 시간")
+class ChatRooms(CommonFields):
+    """채팅방 테이블"""
+
+    __tablename__ = "chat_rooms"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    name = Column(String(64), nullable=False)
+    status = Column(
+        String(4),
+        nullable=False,
+        comment="I : 초대는 했는데, 초대수락 안됨, O : 대화중, L: 대화 후 상대방이 나감.",
+    )
+
+    users = relationship(
+        "Users", secondary="chat_rooms_users", back_populates="chatrooms"
+    )
 
 
-class Message(BaseModel, Document):
-    sender_id: str = Field(..., description="메세지 보낸 사람")
-    message: str = Field(..., description="메세지")
-    last_message_time: datetime = Field(
-        ..., description="메세지 보낸시간 - 마지막 메세지 시간"
-    )  # index 걸을 예정
-    last_message_text: str = Field(..., description="메세지 - 마지막으로 보낸 메세지")
-    read_by: List[ReadBy] = Field(default=[], description="읽은사람과 시간")
+class ChatRoomsUsers(CommonFields):
+    """채팅방-유저 관계 테이블"""
+
+    __tablename__ = "chat_rooms_users"
+
+    user_id = Column(BigInteger, ForeignKey("users.id"), primary_key=True)
+    chatroom_id = Column(BigInteger, ForeignKey("chat_rooms.id"), primary_key=True)
+
+    user = relationship("Users", back_populates="chatrooms")
+    chatroom = relationship("ChatRooms", back_populates="users")
 
 
-class Chats(BaseModel, Document):
-    room_id: str = Field(..., description="방번호")
-    users: List[str] = Field(..., description="채팅방에 참여한 유저")
-    messages: List[Message] = Field(default=[], description="메세지")
-    room_link: str = Field(description="채팅방 링크")
+class Messages(CommonFields):
+    """메세지 테이블"""
 
-    class Settings:
-        collection = "chats"
+    __tablename__ = "messages"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    chatroom_id = Column(BigInteger, ForeignKey("chatrooms.id"), nullable=False)
+    sender_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
+    content = Column(Text, nullable=False)
+
+
+class MessageReadStatus(CommonFields):
+    """메세지읽음 상태 테이블"""
+
+    __tablename__ = "message_read_status"
+
+    message_id = Column(BigInteger, ForeignKey("messages.id"), primary_key=True)
+    reader_id = Column(BigInteger, ForeignKey("users.id"), primary_key=True)
+    read_at = Column(DateTime, nullable=False, default=func.current_timestamp())
