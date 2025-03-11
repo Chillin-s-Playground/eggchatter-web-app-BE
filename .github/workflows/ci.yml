@@ -41,14 +41,19 @@ jobs:
 
     - name: Run FastAPI Server
       run: |
-        nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        # Poetry 환경에서 uvicorn 실행
+        nohup poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
+        echo "서버 시작중..🥲"
 
-    - name: Wait for the server to be ready
-      run: |
-        until curl --silent --fail http://127.0.0.1:8000; do
-          echo "Waiting for server to start..."
+        # 서버가 준비될 때까지 기다리기 (서버 시작 준비)
+        until curl --silent --fail http://localhost:8000; do
+          echo "서버 시작 준비...🤔"
           sleep 2
         done
+
+        # 서버가 준비되면 로그를 출력하고 진행
+        echo "서버 시작! 🥰"
+        tail -n 10 server.log
 
     - name: Make test script
       run: chmod +x ./t.sh
