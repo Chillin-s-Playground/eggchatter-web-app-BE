@@ -72,8 +72,8 @@ jobs:
         if [[ "$mode" == "specific" ]]; then
           for file in $test_files; do
             filename=$(basename -- "$file")
-            test_name="${filename%.*}"  # 확장자 제거
-            poetry run ./t.sh -s "$test_name" -f all
+            echo "FILENAME 🚨🚨 : $filename"
+            poetry run ./t.sh -s "$filename" -f all
           done
         else
           poetry run pytest
