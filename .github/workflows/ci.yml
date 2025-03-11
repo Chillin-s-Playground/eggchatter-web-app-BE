@@ -29,6 +29,10 @@ jobs:
       with:
         python-version: '3.11.3'
 
+    - name: Clear pip cache
+      run: |
+        pip cache purge
+
     - name: Install Poetry
       run: |
         curl -sSL https://install.python-poetry.org | python3 -
@@ -54,6 +58,15 @@ jobs:
         # 서버가 준비되면 로그를 출력하고 진행
         echo "서버 시작! 🥰"
         tail -n 10 server.log
+
+      shell: /usr/bin/bash -e {0}
+      env:
+        pythonLocation: /opt/hostedtoolcache/Python/3.11.3/x64
+        PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib/pkgconfig
+        Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.3/x64
+        Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.3/x64
+        Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.3/x64
+        LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
 
     - name: Make test script
       run: chmod +x ./t.sh
