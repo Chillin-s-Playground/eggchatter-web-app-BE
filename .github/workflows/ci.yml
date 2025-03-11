@@ -43,6 +43,7 @@ jobs:
       run: |
         # PR에서 변경된 파일 목록 확인
         CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+        echo "Changed files: $CHANGED_FILES"
 
         # app/tests/ 경로에 있는 파일만 필터링해서 test_files 환경 변수에 저장
         TEST_FILES=$(echo "$CHANGED_FILES" | grep '^app/tests/' | tr '\n' ' ')
