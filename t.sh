@@ -29,7 +29,7 @@ if [[ -z "$TEST_FILE" || -z "$TEST_FUNCTION_ALIAS" ]]; then
 fi
 
 if [[ "$TEST_FUNCTION_ALIAS" == "all" ]]; then
-  pytest "app/tests/test_${TEST_FILE}.py"
+  pytest "app/tests/test_${TEST_FILE}"
 else
   TEST_FUNCTION=${!TEST_FUNCTION_ALIAS}
   if [[ -z "$TEST_FUNCTION" ]]; then

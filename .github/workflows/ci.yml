@@ -63,7 +63,7 @@ jobs:
         if [[ "$mode" == "specific" ]]; then
           for file in $test_files; do
             filename=$(basename -- "$file")
-            test_name="${filename%.*}"  # 확장자 제거
+            test_name="${filename#test_}"  # 확장자 제거
             poetry run ./t.sh -s "$test_name" -f all
           done
         else
