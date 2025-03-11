@@ -35,7 +35,9 @@ jobs:
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Install dependencies
-      run: poetry install --no-interaction --no-root
+      run: |
+        poetry cache clear pypi --all
+        poetry install --no-interaction --no-root
 
     - name: run FastAPI Server
       run: |
