@@ -1,33 +1,68 @@
 name: Run Pytest on Push
 
 on:
-  push:
-    branches:
-      - dev
   pull_request:
     branches:
-      - main 
+    - main
+    paths:
+    - "app/**"
+
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'Test Mode (all | specific)'
+        required: true
+        default: 'all'
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11.3'
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11.3'
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Install dependencies
-        run: poetry install --no-interaction --no-root
+    - name: Install dependencies
+      run: poetry install --no-interaction --no-root
 
-      - name: Run Pytest
-        run: poetry run pytest
+    - name: Make test script
+      run: chmod +x ./t.sh
+
+    - name: Determine test Mode
+      id: test_mode
+      run: |
+        # PR에서 변경된 파일 목록 확인
+        CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+
+        # app/tests/ 경로에 있는 파일만 필터링해서 test_files 환경 변수에 저장
+        TEST_FILES=$(echo "$CHANGED_FILES" | grep '^app/tests/' | tr '\n' ' ')
+
+        # test_files 값이 있으면 specific 모드로 실행하고, 없으면 전체 테스트(all) 실행.
+        if [[ -n "$TEST_FILES" ]]; then
+          echo "mode=specific" >> $GITHUB_ENV
+          echo "test_files=$TEST_FILES" >> $GITHUB_ENV
+        else
+          echo "mode=all" >> $GITHUB_ENV
+        fi
+
+    - name: Run Tests
+      run: |
+        if [[ "$mode" == "specific" ]]; then
+          for file in $test_files; do
+            filename=$(basename -- "$file")
+            test_name="${filename%.*}"  # 확장자 제거
+            poetry run ./t.sh -s "$test_name" -f all
+          done
+        else
+          poetry run pytest
+        fi
