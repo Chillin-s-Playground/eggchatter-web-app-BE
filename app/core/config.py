@@ -22,11 +22,11 @@ class Configs(BaseSettings):
     DB_PORT: str = _getenv("DB_PORT")
     DATA_BASE: str = _getenv("DATA_BASE")
     # 테스트용 DB
-    TEST_DB_USER: str = _getenv("DB_USER")
-    TEST_DB_PASSWORD: str = _getenv("DB_PASSWORD")
-    TEST_DB_HOST: str = _getenv("DB_HOST")
-    TEST_DB_PORT: str = _getenv("DB_PORT")
-    TEST_DATA_BASE: str = _getenv("DATA_BASE")
+    TEST_DB_USER: str = _getenv("TEST_DB_USER")
+    TEST_DB_PASSWORD: str = _getenv("TEST_DB_PASSWORD")
+    TEST_DB_HOST: str = _getenv("TEST_DB_HOST")
+    TEST_DB_PORT: str = _getenv("TEST_DB_PORT")
+    TEST_DATA_BASE: str = _getenv("TEST_DATA_BASE")
 
     DATABASE_URI: str = (
         "{db_engine}://{user}:{password}@{host}:{port}/{database}".format(

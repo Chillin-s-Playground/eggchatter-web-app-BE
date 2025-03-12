@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from jose import ExpiredSignatureError, jwt
 
@@ -15,7 +15,7 @@ def create_jwt_access_token(data):
     """access_token 생성 메소드."""
 
     to_encode = data.copy()
-    exp = int(datetime.now().timestamp()) + 3600  # 1일
+    exp = int(datetime.now().timestamp()) + 86400  # 1일
     to_encode.update({"exp": f"{exp}"})
 
     access_token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -26,7 +26,7 @@ def create_jwt_access_token(data):
 def create_jwt_refresh_token(data):
     """refresh_token 생성 메소드."""
     to_encode = data.copy()
-    exp = int(datetime.now().timestamp()) + 10800  # 3일
+    exp = int(datetime.now().timestamp()) + 259200  # 3일
     to_encode.update({"exp": exp})
 
     refresh_token = jwt.encode(to_encode, REFRESH_SECRET_KEY, algorithm=ALGORITHM)
@@ -56,4 +56,4 @@ def decode_jwt_payload(access_token: str, refresh_token: str):
             return dict(user_id=user_id, token={**access_token, **refresh_token})
         except ExpiredSignatureError:
             # refresh_token도 만료됐을 경우 raise exception
-            raise TokenExpiredException()
+            raise TokenExpiredException() from None

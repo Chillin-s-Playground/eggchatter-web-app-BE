@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 
 class RequestDataMissingException(HTTPException):
-    """필수 요청 파라미터 누룩 오류"""
+    """필수 요청 파라미터 누락 오류"""
 
     def __init__(
         self, detail: Optional[str] = None, headers: Optional[Dict[str, Any]] = None
@@ -53,7 +53,7 @@ class ValidationErrorException(HTTPException):
 
 
 class SQLDataErrorException(HTTPException):
-    """Validation 오류"""
+    """SQL 데이터 처리 관련 오류"""
 
     def __init__(
         self, detail: Optional[str] = None, headers: Optional[Dict[str, Any]] = None

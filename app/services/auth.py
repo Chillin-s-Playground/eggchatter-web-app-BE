@@ -97,8 +97,8 @@ class AuthService:
             if "for key 'users.email'" in str(e):
                 raise DuplicatedErrorException(
                     detail="이미 사용 중인 이메일 주소입니다."
-                )
+                ) from e
             else:
-                raise DuplicatedErrorException(str(e))
+                raise DuplicatedErrorException(str(e)) from e
         except Exception as e:
-            raise UnknownErrorException(detail=str(e))
+            raise UnknownErrorException(detail=str(e)) from e
