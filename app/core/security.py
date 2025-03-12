@@ -16,7 +16,7 @@ def create_jwt_access_token(data):
 
     to_encode = data.copy()
     exp = int(datetime.now().timestamp()) + 86400  # 1일
-    to_encode.update({"exp": f"{exp}"})
+    to_encode.update({"exp": exp})
 
     access_token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
