@@ -10,7 +10,6 @@ class RequestDataMissingException(HTTPException):
     def __init__(
         self, detail: Optional[str] = None, headers: Optional[Dict[str, Any]] = None
     ):
-        detail = "필수 요청 데이터가 누락되었습니다."
         super().__init__(status.HTTP_400_BAD_REQUEST, detail, headers)
 
 

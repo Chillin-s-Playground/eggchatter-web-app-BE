@@ -3,7 +3,7 @@ from datetime import datetime
 from jose import ExpiredSignatureError, jwt
 
 from app.core.config import configs
-from app.core.exceptions import TokenExpiredException
+from app.core.exceptions import RequestDataMissingException, TokenExpiredException
 
 SECRET_KEY = configs.SECRET_KEY
 ALGORITHM = configs.ALGORITHM
@@ -37,6 +37,8 @@ def create_jwt_refresh_token(data):
 def decode_jwt_payload(access_token: str, refresh_token: str):
     """token decoding 후 user_id값 반환"""
     try:
+        if not access_token or not refresh_token:
+            raise RequestDataMissingException(detail="토큰이 필요합니다.")
         # access_token 디코딩
         payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
         user_id = int(payload.get("sub"))
@@ -49,7 +51,7 @@ def decode_jwt_payload(access_token: str, refresh_token: str):
             )
             user_id = payload.get("sub")
             data = {
-                "sub": f"{user_id}",
+                "sub": user_id,
             }
             access_token = create_jwt_access_token(data=data)
             refresh_token = create_jwt_refresh_token(data=data)
