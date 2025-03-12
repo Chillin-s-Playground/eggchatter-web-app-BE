@@ -36,11 +36,23 @@ class ValidationErrorException(HTTPException):
 
     def __init__(self, error: ValidationError):
         errors = error.errors()
-        # detail = [
-        #     dict(field=e.get("loc")[0], type=e.get("type"), error=e.get("msg"))
-        #     for e in errors
-        # ]
         detail = errors
         super().__init__(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail
         )
+
+
+class SQLDataErrorException(HTTPException):
+    """Validation 오류"""
+
+    def __init__(
+        self, detail: Optional[str] = None, headers: Optional[Dict[str, Any]] = None
+    ):
+        super().__init__(status.HTTP_400_BAD_REQUEST, detail, headers)
+
+
+class TokenExpiredException(HTTPException):
+    """토큰 만료 오류"""
+
+    def __init__(self, detail="토큰이 만료되었습니다.", headers=None):
+        super().__init__(status.HTTP_401_UNAUTHORIZED, detail, headers)
