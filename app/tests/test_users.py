@@ -46,11 +46,11 @@ async def run_post_request(path: str, data):
 # Assert
 @pytest.mark.asyncio
 async def test_create_profile_success(valid_profile_data):
-    res = await run_post_request(path="/profile", data=valid_profile_data)
-    assert res.status_code == 200
+    respons = await run_post_request(path="/profile", data=valid_profile_data)
+    assert respons.status_code == 200
 
 
 @pytest.mark.asyncio
 async def test_create_profile_failure(invalid_profile_data):
-    res = await run_post_request(path="/profile", data=invalid_profile_data)
-    assert res.status_code == 400
+    respons = await run_post_request(path="/profile", data=invalid_profile_data)
+    assert respons.status_code == 400
