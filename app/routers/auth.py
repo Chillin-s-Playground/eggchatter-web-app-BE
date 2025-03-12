@@ -32,7 +32,7 @@ async def sign_up(
     db=Depends(get_db),
 ) -> BaseResponse:
     """회원 가입 API"""
-    auth = AuthService(db=db)
+    auth = AuthService()
 
     # 로그인 타입에 따른 user_dat 분기처리
     if req.login_type == "KAKAO":
@@ -40,7 +40,8 @@ async def sign_up(
         user_data = {**req.model_dump(), **social_user.model_dump()}
 
     # 신규유저 데이터 생성 후 user id값 반환
-    user_id = await auth.signup_new_user(user_data=user_data)
+    user = UserService(db=db)
+    user_id = await user.signup_new_user(user_data=user_data)
 
     # user id값으로 jwt token 생성
     data = {
