@@ -58,8 +58,8 @@ class AuthService:
         """카카오 회원정보 가져오는 메소드."""
 
         async with httpx.AsyncClient() as client:
-            user = (
-                await client.post(
+            try:
+                response = await client.post(
                     url=KAKAO_USER_ME_URL,
                     headers={
                         "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
@@ -67,14 +67,31 @@ class AuthService:
                     },
                     params={"property_keys[]": "kakao_account.email"},
                 )
-            ).json()
+                response.raise_for_status()  # HTTP 오류 응답 확인
+                user = response.json()
+            except httpx.HTTPStatusError as e:
+                raise UnknownErrorException(
+                    detail=f"카카오 API 호출 중 오류 발생: {str(e)}"
+                )
+            except httpx.RequestError as e:
+                raise UnknownErrorException(
+                    detail=f"카카오 API 요청 중 오류 발생: {str(e)}"
+                )
 
-            social_id = user.get("id")
-            account = user.get("kakao_account")
-            email = account.get("email")
-            profile = account.get("profile")
-            profile_image = profile.get("profile_image_url")
-            nickname = profile.get("nickname")
+            try:
+                social_id = user.get("id")
+                if not social_id:
+                    raise ValueError("카카오 소셜 ID를 찾을 수 없습니다")
+
+                account = user.get("kakao_account", {})
+                email = account.get("email")
+                profile = account.get("profile", {})
+                profile_image = profile.get("profile_image_url")
+                nickname = profile.get("nickname")
+            except (KeyError, TypeError) as e:
+                raise UnknownErrorException(
+                    detail=f"카카오 사용자 정보 파싱 중 오류 발생: {str(e)}"
+                )
 
             return SocialUserDtoModel(
                 social_id=f"{social_id}",
@@ -82,23 +99,3 @@ class AuthService:
                 nickname=nickname,
                 profile_image=profile_image,
             )
-
-    async def signup_new_user(self, user_data):
-        """신규유저 생성 메소드."""
-        try:
-            user = Users(**user_data)
-            self.db.add(user)
-            self.db.flush()
-            self.db.refresh(user)
-            self.db.commit()
-
-            return user.id
-        except IntegrityError as e:
-            if "for key 'users.email'" in str(e):
-                raise DuplicatedErrorException(
-                    detail="이미 사용 중인 이메일 주소입니다."
-                ) from e
-            else:
-                raise DuplicatedErrorException(str(e)) from e
-        except Exception as e:
-            raise UnknownErrorException(detail=str(e)) from e
