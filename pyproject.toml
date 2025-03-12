@@ -25,6 +25,11 @@ pytest = "^8.3.5"
 faker = "^36.2.2"
 httpx = "^0.28.1"
 pytest-asyncio = "^0.25.3"
+socketio = "^0.2.1"
+python-socketio = "^5.12.1"
+aiohttp = "^3.11.13"
+python-jose = "^3.4.0"
+bcrypt = "^4.3.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.9.6"
