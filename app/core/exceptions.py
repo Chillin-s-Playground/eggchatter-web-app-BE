@@ -4,6 +4,16 @@ from fastapi import HTTPException, status
 from pydantic import ValidationError
 
 
+class RequestDataMissingException(HTTPException):
+    """필수 요청 파라미터 누룩 오류"""
+
+    def __init__(
+        self, detail: Optional[str] = None, headers: Optional[Dict[str, Any]] = None
+    ):
+        detail = "필수 요청 데이터가 누락되었습니다."
+        super().__init__(status.HTTP_400_BAD_REQUEST, detail, headers)
+
+
 class DuplicatedErrorException(HTTPException):
     """중복된 데이터 오류"""
 
