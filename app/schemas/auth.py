@@ -10,6 +10,7 @@ class AuthDtoModel(BaseModel):
     """회원가입, 로그인 DTO"""
 
     login_type: str = Field(..., description="로그인 유형 (KAKAO, EMAIL)")
+    social_id: str | None = Field(None, description="소셜로그인 시 id값")
     email: str | None = Field(
         None,
         description="이메일 주소 (이메일 로그인일 경우 필수)",
