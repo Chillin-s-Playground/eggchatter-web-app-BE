@@ -15,3 +15,6 @@ extra_instructions="""\
 
 [pr_description]
 publish_labels = true
+
+[config]
+response_language="ko-KR"
