@@ -2,6 +2,7 @@
 extra_instructions="""\
 - respond in korean.
 """
+publish_labels = true
 
 [pr_reviewer]
 extra_instructions="""\
@@ -12,9 +13,6 @@ extra_instructions="""\
 extra_instructions="""\
 - respond in korean.
 """
-
-[pr_description]
-publish_labels = true
 
 [config]
 response_language="ko-KR"
