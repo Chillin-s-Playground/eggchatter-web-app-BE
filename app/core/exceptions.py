@@ -1,20 +1,43 @@
 from typing import Any, Dict, Optional
 
 from fastapi import HTTPException, status
+from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
+from app.core.base import BaseResponse
+from app.core.error_code import ErrorCode
 
-class RequestDataMissingException(HTTPException):
-    """필수 요청 파라미터 누락 오류"""
+
+class CustomException(Exception):
+    """커스텀 예외 기본 클래스"""
+
+    STATUS_CODE = status.HTTP_400_BAD_REQUEST
+    ERROR_CODE = STATUS_CODE
+    DEFAULT_MESSAGE = "오류가 발생했습니다."
 
     def __init__(
         self, detail: Optional[str] = None, headers: Optional[Dict[str, Any]] = None
     ):
-        super().__init__(status.HTTP_400_BAD_REQUEST, detail, headers)
+        self.http_status_code = self.STATUS_CODE
+        self.response = BaseResponse(
+            status_code=self.ERROR_CODE, message=detail or self.DEFAULT_MESSAGE
+        )
+        self.headers = headers
 
 
-class DuplicatedErrorException(HTTPException):
+class DuplicatedErrorException(CustomException):
     """중복된 데이터 오류"""
+
+    STATUS_CODE = status.HTTP_400_BAD_REQUEST
+    ERROR_CODE = ErrorCode.DUPLICATED_ENTRY
+    DEFAULT_MESSAGE = "이미 존재하는 데이터입니다."
+
+    def __init__(self, detail: Optional[str] = None):
+        super().__init__(detail=f"{detail}" or self.DEFAULT_MESSAGE)
+
+
+class RequestDataMissingException(HTTPException):
+    """필수 요청 파라미터 누락 오류"""
 
     def __init__(
         self, detail: Optional[str] = None, headers: Optional[Dict[str, Any]] = None
@@ -65,3 +88,12 @@ class TokenExpiredException(HTTPException):
 
     def __init__(self, detail="토큰이 만료되었습니다.", headers=None):
         super().__init__(status.HTTP_401_UNAUTHORIZED, detail, headers)
+
+
+async def exception_handler(_, exc: Exception):
+    """CustomException 예외 발생 시 처리"""
+    return JSONResponse(
+        status_code=exc.http_status_code,
+        content=exc.response.model_dump(),
+        headers=exc.headers,
+    )
