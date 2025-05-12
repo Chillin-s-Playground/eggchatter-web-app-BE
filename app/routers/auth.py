@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, Header, Request
 
 from app.core.base import BaseResponse
 from app.core.database import get_db
+from app.core.exceptions import DuplicatedErrorException
 from app.core.security import create_jwt_access_token, create_jwt_refresh_token
-from app.schemas.auth import AuthDtoModel, CommonHeader
+from app.schemas.auth import CommonHeader, SignUpDTOModel
 from app.services.auth import AuthService
 from app.services.users import UserService
 
@@ -25,33 +26,62 @@ async def kakao_callback(req: Request):
     return {"code": code}
 
 
+@router.post("/signup", response_model=BaseResponse)
+async def signup(req: SignUpDTOModel, db=Depends(get_db)):
+    login_type, social_id, email, nickname = (
+        req.login_type,
+        req.social_id,
+        req.email,
+        req.nickname,
+    )
+
+    # 회원가입 여부 체크
+    auth = AuthService(db=db)
+    is_register = await auth.is_registered_user(login_type, email, social_id)
+    if is_register:
+        raise DuplicatedErrorException(detail="이미 가입된 회원입니다.")
+
+    # 닉네임 중복검사
+    existed_nickname = await auth.is_existed_nickname(nickname)
+    if existed_nickname:
+        raise DuplicatedErrorException(detail="중복된 닉네임 입니다.")
+
+    # 회원가입
+    await auth.signup_new_user(user_data={**req.model_dump()})
+    return BaseResponse(message="회원가입을 완료했습니다.")
+
+
 @router.post("/signin", response_model=BaseResponse)
-async def sign_in(
-    req: AuthDtoModel,
-    access_token: str = Header(...),
-    refresh_token: str = Header(...),
-    db=Depends(get_db),
-):
-    """소셜ID값으로 회원여부를 확인하고, 없으면 가입 후 자체 JWT 발급하는 API."""
-    user = UserService(db=db)
-    is_registered = await user.is_registered_user(social_id=req.social_id)
+async def signin():
+    return
 
-    auth = AuthService()
-    if is_registered:
-        social_user = await auth.get_kakao_user_info(access_token=access_token)
-        social_id = social_user.social_id
-        user_id = await user.get_user_id(social_id=social_id)
-    else:
-        social_user = await auth.get_kakao_user_info(access_token=access_token)
-        user_data = {**req.model_dump(), **social_user.model_dump()}
-        user_id = await user.signup_new_user(user_data=user_data)
 
-    data = {
-        "sub": f"{user_id}",
-    }
-    access_token = create_jwt_access_token(data=data)
-    refresh_token = create_jwt_refresh_token(data=data)
+# async def sign_in(
+#     req: AuthDtoModel,
+#     access_token: str = Header(...),
+#     refresh_token: str = Header(...),
+#     db=Depends(get_db),
+# ):
+#     """소셜ID값으로 회원여부를 확인하고, 없으면 가입 후 자체 JWT 발급하는 API."""
+#     user = UserService(db=db)
+#     is_registered = await user.is_registered_user(social_id=req.social_id)
 
-    token = {**access_token, **refresh_token}
+#     auth = AuthService()
+#     if is_registered:
+#         social_user = await auth.get_kakao_user_info(access_token=access_token)
+#         social_id = social_user.social_id
+#         user_id = await user.get_user_id(social_id=social_id)
+#     else:
+#         social_user = await auth.get_kakao_user_info(access_token=access_token)
+#         user_data = {**req.model_dump(), **social_user.model_dump()}
+#         user_id = await user.signup_new_user(user_data=user_data)
 
-    return BaseResponse(status_code=200, data=token)
+#     data = {
+#         "sub": f"{user_id}",
+#     }
+#     access_token = create_jwt_access_token(data=data)
+#     refresh_token = create_jwt_refresh_token(data=data)
+
+#     token = {**access_token, **refresh_token}
+
+#     return BaseResponse(status_code=200, data=token)

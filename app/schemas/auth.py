@@ -6,10 +6,12 @@ class CommonHeader(BaseModel):
     refresh_token: str | None = Field(None, description="액세스 리프레쉬 토큰")
 
 
-class AuthDtoModel(BaseModel):
+class SignUpDTOModel(BaseModel):
     """회원가입, 로그인 DTO"""
 
     login_type: str = Field(..., description="로그인 유형 (KAKAO, EMAIL)")
+    profile_image: str = Field(..., description="프로필 이미지")
+    nickname: str = Field(..., description="유저 닉네임")
     social_id: str | None = Field(None, description="소셜로그인 시 id값")
     email: str | None = Field(
         None,
