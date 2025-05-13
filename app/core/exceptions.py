@@ -32,8 +32,30 @@ class DuplicatedErrorException(CustomException):
     ERROR_CODE = ErrorCode.DUPLICATED_ENTRY
     DEFAULT_MESSAGE = "이미 존재하는 데이터입니다."
 
-    def __init__(self, detail: Optional[str] = None):
+    def __init__(self, detail: str | None = None):
         super().__init__(detail=f"{detail}" or self.DEFAULT_MESSAGE)
+
+
+class UnknownErrorException(CustomException):
+    """알 수 없는 서버오류"""
+
+    STATUS_CODE = status.HTTP_500_INTERNAL_SERVER_ERROR
+    ERROR_CODE = ErrorCode.UNKNOWN_ERROR
+    DEFAULT_MESSAGE = "알 수 없는 오류가 발생했습니다."
+
+    def __init__(self, detail: str | None = None):
+        super().__init__(detail=f"{detail}" if detail else self.DEFAULT_MESSAGE)
+
+
+class UnauthorizedErrorException(CustomException):
+    """인증 실패 오류"""
+
+    STATUS_CODE = status.HTTP_401_UNAUTHORIZED
+    ERROR_CODE = ErrorCode.UNAUTHORIZED
+    DEFAULT_MESSAGE = "회원 인증에 실패했습니다."
+
+    def __init__(self, detail: str | None = None):
+        super().__init__(detail=f"{detail}" if detail else self.DEFAULT_MESSAGE)
 
 
 class RequestDataMissingException(HTTPException):
@@ -52,15 +74,6 @@ class NotFoundError(HTTPException):
         self, detail: Optional[str] = None, headers: Optional[Dict[str, Any]] = None
     ):
         super().__init__(status.HTTP_404_NOT_FOUND, detail, headers)
-
-
-class UnknownErrorException(HTTPException):
-    """알 수 없는 서버오류"""
-
-    def __init__(
-        self, detail: Optional[str] = None, headers: Optional[Dict[str, Any]] = None
-    ):
-        super().__init__(status.HTTP_500_INTERNAL_SERVER_ERROR, detail, headers)
 
 
 class ValidationErrorException(HTTPException):

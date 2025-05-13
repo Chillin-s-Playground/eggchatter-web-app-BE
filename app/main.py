@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.core.exceptions import DuplicatedErrorException, exception_handler
+from app.core.exceptions import (
+    DuplicatedErrorException,
+    UnknownErrorException,
+    exception_handler,
+)
 from app.routers import auth, easter_egg, users
 
 app = FastAPI()
@@ -24,3 +28,4 @@ app.include_router(users.router)
 app.include_router(easter_egg.router)
 
 app.add_exception_handler(DuplicatedErrorException, exception_handler)
+app.add_exception_handler(UnknownErrorException, exception_handler)
