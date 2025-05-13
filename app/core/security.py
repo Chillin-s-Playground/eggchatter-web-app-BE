@@ -1,5 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
+import bcrypt
 from jose import ExpiredSignatureError, jwt
 
 from app.core.config import configs
@@ -11,51 +12,57 @@ REFRESH_SECRET_KEY = configs.REFRESH_SECRET_KEY
 ALGORITHM = configs.ALGORITHM
 
 
-def create_jwt_access_token(data):
+def verify_password(plain_pw: str, hashed_pw: str) -> bool:
+    """비밀번호 유효성 체크 메소드."""
+    return bcrypt.checkpw(plain_pw.encode("utf-8"), hashed_pw.encode("utf-8"))
+
+
+def create_jwt_access_token(data: dict, expires_delta: timedelta = timedelta(hours=1)):
     """access_token 생성 메소드."""
 
     to_encode = data.copy()
-    exp = int(datetime.now().timestamp()) + 86400  # 1일
-    to_encode.update({"exp": exp})
-
-    access_token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-    return dict(access_token=access_token, expires_in=exp)
+    to_encode["exp"] = datetime.now() + expires_delta
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def create_jwt_refresh_token(data):
+def create_jwt_refresh_token(data, expires_delta: timedelta = timedelta(hours=6)):
     """refresh_token 생성 메소드."""
+
     to_encode = data.copy()
-    exp = int(datetime.now().timestamp()) + 259200  # 3일
-    to_encode.update({"exp": exp})
-
-    refresh_token = jwt.encode(to_encode, REFRESH_SECRET_KEY, algorithm=ALGORITHM)
-
-    return dict(refresh_token=refresh_token, refresh_expires_in=exp)
+    to_encode["exp"] = datetime.now() + expires_delta
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def decode_jwt_payload(access_token: str, refresh_token: str):
-    """token decoding 후 user_id값 반환"""
+    """JWT를 디코딩하여 user_id 반환, 필요한 경우 토큰 갱신"""
+    if not access_token or not refresh_token:
+        raise RequestDataMissingException(detail="토큰이 필요합니다.")
+
+    def extract_user_id(token: str, secret: str) -> int:
+        payload = jwt.decode(token, secret, algorithms=ALGORITHM)
+        return int(payload.get("sub"))
+
     try:
-        if not access_token or not refresh_token:
-            raise RequestDataMissingException(detail="토큰이 필요합니다.")
-        # access_token 디코딩
-        payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
-        user_id = int(payload.get("sub"))
-        return dict(user_id=user_id)
+        user_id = extract_user_id(access_token, SECRET_KEY)
+        return {"user_id": user_id}
+
     except ExpiredSignatureError:
+        # access_token 만료 → refresh_token 확인
         try:
-            # access_token 만료 시 refresh_token으로 token 갱신 및 user_id값 반환
-            payload = jwt.decode(
-                refresh_token, REFRESH_SECRET_KEY, algorithms=ALGORITHM
-            )
-            user_id = payload.get("sub")
-            data = {
-                "sub": user_id,
+            user_id = extract_user_id(refresh_token, REFRESH_SECRET_KEY)
+            data = {"sub": user_id}
+
+            new_access_token = create_jwt_access_token(data=data)
+            new_refresh_token = create_jwt_refresh_token(data=data)
+
+            return {
+                "user_id": user_id,
+                "token": {
+                    **new_access_token,
+                    **new_refresh_token,
+                },
             }
-            access_token = create_jwt_access_token(data=data)
-            refresh_token = create_jwt_refresh_token(data=data)
-            return dict(user_id=user_id, token={**access_token, **refresh_token})
+
         except ExpiredSignatureError:
             # refresh_token도 만료됐을 경우 raise exception
             raise TokenExpiredException() from None
