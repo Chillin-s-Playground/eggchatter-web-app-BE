@@ -9,11 +9,12 @@ from app.core.exceptions import (
     DuplicatedErrorException,
     NotFoundError,
     RequestDataMissingException,
+    UnauthorizedErrorException,
     UnknownErrorException,
 )
-from app.core.security import decode_jwt_payload
+from app.core.security import decode_jwt_payload, verify_password
 from app.models.users import Users
-from app.schemas.auth import CommonHeader, SocialUserDtoModel
+from app.schemas.auth import CommonHeader, SignInDTOModel, SocialUserDtoModel
 
 KAKAO_AUTH_URL = "https://kauth.kakao.com/oauth/token"
 KAKAO_USER_ME_URL = "https://kapi.kakao.com/v2/user/me"
@@ -87,8 +88,32 @@ class AuthService:
         finally:
             self.db.commit()
 
+    async def get_user_by_email(self, email: str):
+        """아이디 조회 메소드."""
+
+        try:
+            account = (
+                self.db.query(Users.id, Users.password)
+                .filter(Users.email == email)
+                .first()
+            )
+
+            if not account:
+                raise UnauthorizedErrorException(detail="없는 회원입니다.")
+
+            return account.id, account.password
+        except Exception as e:
+            raise UnknownErrorException(detail=str(e))
+
+    async def verify_password(self, plain_pw: str, hashed_pw: str):
+        """비밀번호 유효성 검사 메소드."""
+
+        if not verify_password(plain_pw, hashed_pw):
+            raise UnauthorizedErrorException(detail="비밀번호가 유효하지 않습니다.")
+
     async def kakao_auth_callback(self, code):
         """카카오 소셜로그인 callback 메소드."""
+
         async with httpx.AsyncClient() as client:
             res = (
                 await client.post(

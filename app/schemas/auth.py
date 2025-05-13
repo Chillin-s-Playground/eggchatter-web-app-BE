@@ -7,7 +7,7 @@ class CommonHeader(BaseModel):
 
 
 class SignUpDTOModel(BaseModel):
-    """회원가입, 로그인 DTO"""
+    """회원가입 DTO"""
 
     login_type: str = Field(..., description="로그인 유형 (KAKAO, EMAIL)")
     profile_image: str = Field(..., description="프로필 이미지")
@@ -20,6 +20,14 @@ class SignUpDTOModel(BaseModel):
     password: str | None = Field(
         None, description="비밀번호 (이메일 로그인일 경우 필수)"
     )
+
+
+class SignInDTOModel(BaseModel):
+    """로그인 DTO"""
+
+    # TODO 소셜로그인 파라미터 추가
+    email: str = Field(..., description="이메일 주소")
+    password: str = Field(..., description="비밀번호")
 
 
 class SocialUserDtoModel(BaseModel):

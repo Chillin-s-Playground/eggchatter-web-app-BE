@@ -1,14 +1,11 @@
-from typing import Annotated
+from fastapi import APIRouter, Depends, Request
 
-from fastapi import APIRouter, Depends, Header, Request
-
-from app.core.base import BaseResponse
+from app.core.base import BaseResponse, TokenClass
 from app.core.database import get_db
 from app.core.exceptions import DuplicatedErrorException
 from app.core.security import create_jwt_access_token, create_jwt_refresh_token
-from app.schemas.auth import CommonHeader, SignUpDTOModel
+from app.schemas.auth import SignInDTOModel, SignUpDTOModel
 from app.services.auth import AuthService
-from app.services.users import UserService
 
 router = APIRouter(
     prefix="/auth",
@@ -52,8 +49,21 @@ async def signup(req: SignUpDTOModel, db=Depends(get_db)):
 
 
 @router.post("/signin", response_model=BaseResponse)
-async def signin():
-    return
+async def signin(req: SignInDTOModel, db=Depends(get_db)):
+    auth = AuthService(db=db)
+
+    # 아이디 조회
+    user_id, user_pw = await auth.get_user_by_email(email=req.email)
+    # 비밀번호 유효성 검사
+    await auth.verify_password(plain_pw=req.password, hashed_pw=user_pw)
+    # JWT 토큰 발행
+    data = {"sub": f"{user_id}"}
+    access_token = create_jwt_access_token(data=data)
+    refresh_token = create_jwt_refresh_token(data=data)
+
+    return BaseResponse(
+        token=TokenClass(access_token=access_token, refresh_token=refresh_token)
+    )
 
 
 # async def sign_in(
